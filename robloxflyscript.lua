@@ -1,4 +1,11 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Check if Rayfield loaded properly
+if not Rayfield then
+    error("Failed to load Rayfield UI Library.")
+    return
+end
+
 local Window = Rayfield:CreateWindow({
     Name = "Fly Control",
     LoadingTitle = "Loading",
@@ -9,10 +16,24 @@ local Window = Rayfield:CreateWindow({
         FileName = "Config"
     }
 })
+
+-- Check if Window creation was successful
+if not Window then
+    error("Failed to create the main window.")
+    return
+end
+
 local Tab = Window:CreateTab("Fly Settings", 4483362458)
 local Tab2 = Window:CreateTab("Speed Changer", 4483362458)
 local Tab4 = Window:CreateTab("TP", 4483362458)
 local Tab3 = Window:CreateTab("Discord", 4483362458)
+
+-- Check if Tabs creation was successful
+if not Tab or not Tab2 or not Tab3 or not Tab4 then
+    error("Failed to create one or more tabs.")
+    return
+end
+
 local flying = false
 local flySpeed = 50
 local bodyVelocity = nil
@@ -21,6 +42,7 @@ local flyConnection = nil
 local player = game:GetService("Players").LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+
 local function startFlying()
     if flying then return end
     flying = true
@@ -54,6 +76,7 @@ local function startFlying()
         bodyGyro.CFrame = workspace.CurrentCamera.CoordinateFrame
     end)
 end
+
 local function stopFlying()
     if not flying then return end
     flying = false
@@ -61,6 +84,7 @@ local function stopFlying()
     if bodyGyro then bodyGyro:Destroy() end
     if flyConnection then flyConnection:Disconnect() end
 end
+
 local flyToggle = Tab:CreateToggle({
     Name = "Fly",
     CurrentValue = false,
@@ -72,6 +96,7 @@ local flyToggle = Tab:CreateToggle({
         end
     end,
 })
+
 local speedInput = Tab:CreateInput({
     Name = "Fly Speed",
     PlaceholderText = "Enter speed...",
@@ -87,6 +112,7 @@ local speedInput = Tab:CreateInput({
         end
     end,
 })
+
 local discordButton1 = Tab3:CreateButton({
     Name = "Get all kinds of scripts",
     Callback = function()
@@ -105,6 +131,7 @@ local discordButton1 = Tab3:CreateButton({
         })
     end
 })
+
 local discordButton2 = Tab3:CreateButton({
     Name = "Owner discord server!",
     Callback = function()
@@ -123,6 +150,7 @@ local discordButton2 = Tab3:CreateButton({
         })
     end
 })
+
 local walkSpeedEnabled = false
 local walkSpeedSlider = Tab2:CreateSlider({
     Name = "Walk Speed",
@@ -138,6 +166,7 @@ local walkSpeedSlider = Tab2:CreateSlider({
         end
     end
 })
+
 local walkSpeedToggle = Tab2:CreateToggle({
     Name = "Enable Walk Speed Control",
     CurrentValue = false,
@@ -152,6 +181,7 @@ local walkSpeedToggle = Tab2:CreateToggle({
         end
     end
 })
+
 local targetPlayerName = ""
 local TeleportButton = Tab4:CreateButton({
     Name = "Teleport to Player",
@@ -189,4 +219,71 @@ local TargetPlayerInput = Tab4:CreateInput({
         targetPlayerName = Text
     end,
 })
+
+local jumpPowerSlider = Tab:CreateSlider({
+    Name = "Jump Power",
+    Range = {0, 1000},
+    Increment = 10,
+    Suffix = " Power",
+    CurrentValue = 50,
+    Callback = function(Value)
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid and jumpPowerEnabled then
+                humanoid.JumpPower = Value
+            end
+        end
+    end
+})
+
+local jumpPowerEnabled = true
+local jumpPowerToggle = Tab:CreateToggle({
+    Name = "Enable Jump Power",
+    CurrentValue = true,
+    Callback = function(Value)
+        jumpPowerEnabled = Value
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                if Value then
+                    humanoid.JumpPower = jumpPowerSlider.CurrentValue
+                else
+                    humanoid.JumpPower = 50
+                end
+            end
+        end
+    end,
+})
+
+local gravityEnabled = true
+local gravitySlider = Tab:CreateSlider({
+    Name = "Gravity",
+    Range = {-1000, 1000},
+    Increment = 50,
+    Suffix = " Agility",
+    CurrentValue = 196.2,
+    Callback = function(Value)
+        if gravityEnabled then
+            workspace.Gravity = Value
+        end
+    end
+})
+
+local gravityToggle = Tab:CreateToggle({
+    Name = "Enable Gravity Control",
+    CurrentValue = true,
+    Callback = function(Value)
+        gravityEnabled = Value
+        if Value then
+            workspace.Gravity = gravitySlider.CurrentValue
+        else
+            workspace.Gravity = 196.2
+        end
+    end,
+})
+
+for i, tab in pairs(Window.Tabs) do
+    tab.ScrollingEnabled = true
+end
+
 Rayfield:LoadConfiguration()
