@@ -85,7 +85,7 @@ local speedInput = Tab:CreateInput({
     end,
 })
 local discordButton1 = Tab:CreateButton({
-    Name = "Discord server for all kinds of scripts",
+    Name = "Get all kinds of scripts",
     Callback = function()
 		if syn then
 			syn.write_clipboard("https://discord.gg/MtFU8qmpqJ")
@@ -103,7 +103,7 @@ local discordButton1 = Tab:CreateButton({
     end
 })
 local discordButton2 = Tab:CreateButton({
-    Name = "Another Discord server!",
+    Name = "Owner discord server!",
     Callback = function()
 		if syn then
 			syn.write_clipboard("https://discord.gg/tX9dd54a6e")
