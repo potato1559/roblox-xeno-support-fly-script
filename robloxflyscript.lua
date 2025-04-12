@@ -2,16 +2,18 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "Fly Control",
     LoadingTitle = "Loading",
-    LoadingSubtitle = "by i_want_tobe_famouse",
+    LoadingSubtitle = "by i_want_tobe_famouse in discord",
     ConfigurationSaving = {
         Enabled = false,
         FolderName = nil,
-        FileName = "FlyConfig"
+        FileName = "Config"
     }
 })
 local Tab = Window:CreateTab("Fly Settings", 4483362458)
+local Tab2 = Window:CreateTab("Speed Changer", 4483362458)
+local Tab3 = Window:CreateTab("Discord", 4483362458)
 local flying = false
-local flySpeed = 20
+local flySpeed = 50
 local bodyVelocity = nil
 local bodyGyro = nil
 local flyConnection = nil
@@ -84,7 +86,7 @@ local speedInput = Tab:CreateInput({
         end
     end,
 })
-local discordButton1 = Tab:CreateButton({
+local discordButton1 = Tab3:CreateButton({
     Name = "Get all kinds of scripts",
     Callback = function()
 		if syn then
@@ -102,7 +104,7 @@ local discordButton1 = Tab:CreateButton({
 		})
     end
 })
-local discordButton2 = Tab:CreateButton({
+local discordButton2 = Tab3:CreateButton({
     Name = "Owner discord server!",
     Callback = function()
 		if syn then
@@ -120,6 +122,37 @@ local discordButton2 = Tab:CreateButton({
 		})
     end
 })
+local walkSpeedEnabled = false
+local walkSpeedSlider = Tab2:CreateSlider({
+    Name = "Walk Speed",
+    Range = {5, 1000},
+    Increment = 5,
+    Suffix = " studs/sec",
+    CurrentValue = 16,
+    Callback = function(Value)
+		if walkSpeedEnabled then
+        	if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            	player.Character.Humanoid.WalkSpeed = Value
+        	end
+		end
+    end
+})
+
+local walkSpeedToggle = Tab2:CreateToggle({
+    Name = "Enable Walk Speed Control",
+    CurrentValue = false,
+    Callback = function(Value)
+		walkSpeedEnabled = Value
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            if Value then
+                player.Character.Humanoid.WalkSpeed = walkSpeedSlider.CurrentValue
+            else
+                player.Character.Humanoid.WalkSpeed = 16 -- Revert to default speed
+            end
+        end
+    end
+})
+
 player.CharacterAdded:Connect(function(character)
     character:WaitForChild("Humanoid").Died:Connect(function()
         stopFlying()
