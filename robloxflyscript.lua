@@ -84,6 +84,24 @@ local speedInput = Tab:CreateInput({
         end
     end,
 })
+local discordButton = Tab:CreateButton({
+    Name = "Discord server for all kinds of scripts",
+    Callback = function()
+		if syn then
+			syn.write_clipboard("https://discord.gg/MtFU8qmpqJ")
+		elseif setclipboard then
+        	setclipboard("https://discord.gg/MtFU8qmpqJ")
+		else
+			print("This exploit doesnt support clipboards")
+		end
+		Rayfield:Notify({
+			Title = "Copied!",
+			Content = "Discord invite link copied to clipboard.",
+			Duration = 3,
+			Image = 4483362458, 
+		})
+    end
+})
 player.CharacterAdded:Connect(function(character)
     character:WaitForChild("Humanoid").Died:Connect(function()
         stopFlying()
@@ -95,4 +113,3 @@ if player.Character then
     end)
 end
 Rayfield:LoadConfiguration()
-
