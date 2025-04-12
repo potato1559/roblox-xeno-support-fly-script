@@ -84,7 +84,7 @@ local speedInput = Tab:CreateInput({
         end
     end,
 })
-local discordButton = Tab:CreateButton({
+local discordButton1 = Tab:CreateButton({
     Name = "Discord server for all kinds of scripts",
     Callback = function()
 		if syn then
@@ -98,7 +98,25 @@ local discordButton = Tab:CreateButton({
 			Title = "Copied!",
 			Content = "Discord invite link copied to clipboard.",
 			Duration = 3,
-			Image = 4483362458, 
+			Image = 4483362458,
+		})
+    end
+})
+local discordButton2 = Tab:CreateButton({
+    Name = "Another Discord server!",
+    Callback = function()
+		if syn then
+			syn.write_clipboard("https://discord.gg/tX9dd54a6e")
+		elseif setclipboard then
+        	setclipboard("https://discord.gg/tX9dd54a6e")
+		else
+			print("This exploit doesnt support clipboards")
+		end
+		Rayfield:Notify({
+			Title = "Copied!",
+			Content = "Discord invite link copied to clipboard.",
+			Duration = 3,
+			Image = 4483362458,
 		})
     end
 })
