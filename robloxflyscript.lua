@@ -7,11 +7,11 @@ if not Rayfield then
 end
 
 local Window = Rayfield:CreateWindow({
-    Name = "Fly Control",
+    Name = "1559Hub",
     LoadingTitle = "Loading",
     LoadingSubtitle = "by i_want_tobe_famouse",
     ConfigurationSaving = {
-        Enabled = false,
+        Enabled = true,
         FolderName = nil,
         FileName = "Config"
     }
@@ -113,6 +113,68 @@ local speedInput = Tab:CreateInput({
     end,
 })
 
+local jumpPowerSlider = Tab:CreateSlider({
+    Name = "Jump Power",
+    Range = {0, 1000},
+    Increment = 10,
+    Suffix = " Power",
+    CurrentValue = 50,
+    Callback = function(Value)
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid and jumpPowerEnabled then
+                humanoid.JumpPower = Value
+            end
+        end
+    end
+})
+
+local jumpPowerEnabled = true
+local jumpPowerToggle = Tab:CreateToggle({
+    Name = "Enable Jump Power",
+    CurrentValue = true,
+    Callback = function(Value)
+        jumpPowerEnabled = Value
+        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                if Value then
+                    humanoid.JumpPower = jumpPowerSlider.CurrentValue
+                else
+                    humanoid.JumpPower = 50
+                end
+            end
+        end
+    end,
+})
+
+local gravityEnabled = true
+local gravitySlider = Tab:CreateSlider({
+    Name = "Gravity",
+    Range = {-1000, 1000},
+    Increment = 50,
+    Suffix = " Agility",
+    CurrentValue = 196.2,
+    Callback = function(Value)
+        if gravityEnabled then
+            workspace.Gravity = Value
+        end
+    end
+})
+
+local gravityToggle = Tab:CreateToggle({
+    Name = "Enable Gravity Control",
+    CurrentValue = true,
+    Callback = function(Value)
+        gravityEnabled = Value
+        if Value then
+            workspace.Gravity = gravitySlider.CurrentValue
+        else
+            workspace.Gravity = 196.2
+        end
+    end,
+})
+
 local discordButton1 = Tab3:CreateButton({
     Name = "Get all kinds of scripts",
     Callback = function()
@@ -183,32 +245,262 @@ local walkSpeedToggle = Tab2:CreateToggle({
 })
 
 local targetPlayerName = ""
-local TeleportButton = Tab4:CreateButton({
-    Name = "Teleport to Player",
-    Callback = function()
-        -- Find the target player
-        local targetPlayer = nil
-        for i, v in pairs(game.Players:GetPlayers()) do
-            if string.lower(v.Name) == string.lower(targetPlayerName) then
-                targetPlayer = v
-                break
-            end
+local teleportDistance = 5
+local loopDelay = 1
+local isLoopingSelected = false
+local loopConnectionSelected = nil
+local isLooping = false
+local loopConnection = nil
+
+local function teleportToRandomPlayer()
+    local players = game:GetService("Players"):GetPlayers()
+    local localPlayer = game:GetService("Players").LocalPlayer
+
+    -- Remove the local player from the list
+    local availablePlayers = {}
+    for i, v in pairs(players) do
+        if v ~= localPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(availablePlayers, v)
         end
-        -- Teleport to the target player
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    end
+
+    if #availablePlayers > 0 then
+        local randomIndex = math.random(1, #availablePlayers)
+        local targetPlayer = availablePlayers[randomIndex]
+        local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+        if targetHRP then
             local char = player.Character
             local root = char:WaitForChild("HumanoidRootPart")
             root.CFrame = targetHRP.CFrame + Vector3.new(0, 5, 0) -- Teleport above the player
+            Rayfield:Notify({
+                Title = "Teleported",
+                Content = "Teleported to " .. targetPlayer.Name,
+                Duration = 3,
+                Image = 4483362458,
+            })
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Player not found or no HumanoidRootPart",
+                Content = "Target player's HumanoidRootPart not found.",
                 Duration = 3,
                 Image = 4483362458,
             })
         end
+    else
+        Rayfield:Notify({
+            Title = "Error",
+            Content = "No other players found with a HumanoidRootPart.",
+            Duration = 3,
+            Image = 4483362458,
+        })
     end
+end
+
+local function toggleLoopTeleport()
+    isLooping = not isLooping
+
+    if isLooping then
+        -- Start the loop
+        loopConnection = RunService.Heartbeat:Connect(function()
+            teleportToRandomPlayer()
+            task.wait(loopDelay)
+        end)
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport to random players started.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    else
+        -- Stop the loop
+        if loopConnection then
+            loopConnection:Disconnect()
+            loopConnection = nil
+        end
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport to random players stopped.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+end
+
+local function toggleLoopTeleportToSelected()
+    isLoopingSelected = not isLoopingSelected
+    if isLoopingSelected then
+        if targetPlayerName == "" then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Please enter a player name first.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+            isLoopingSelected = false
+            return
+        end
+
+        loopConnectionSelected = RunService.Heartbeat:Connect(function()
+            local targetPlayer = nil
+            for i, v in pairs(game.Players:GetPlayers()) do
+                if string.lower(v.Name) == string.lower(targetPlayerName) then
+                    targetPlayer = v
+                    break
+                end
+            end
+
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local char = player.Character
+                local root = char:WaitForChild("HumanoidRootPart")
+                root.CFrame = targetHRP.CFrame + Vector3.new(0, teleportDistance, 0)
+                task.wait(loopDelay)
+
+            else
+                Rayfield:Notify({
+                    Title = "Error",
+                    Content = "Player not found or no HumanoidRootPart",
+                    Duration = 3,
+                    Image = 4483362458,
+                })
+                isLoopingSelected = false
+                loopConnectionSelected:Disconnect()
+                loopConnectionSelected = nil
+                return
+            end
+        end)
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport to " .. targetPlayerName .. " started.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    else
+        if loopConnectionSelected then
+            loopConnectionSelected:Disconnect()
+            loopConnectionSelected = nil
+        end
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport to selected player stopped.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+end
+
+local function stopLoopTeleport()
+    -- Stop the loop
+    if isLooping then
+        isLooping = false
+        if loopConnection then
+            loopConnection:Disconnect()
+            loopConnection = nil
+        end
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport to random players stopped.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    else
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport is already stopped.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+end
+
+local function stopLoopTeleportSelected()
+    -- Stop the loop
+    if isLoopingSelected then
+        isLoopingSelected = false
+        if loopConnectionSelected then
+            loopConnectionSelected:Disconnect()
+            loopConnectionSelected = nil
+        end
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport to selected player stopped.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    else
+        Rayfield:Notify({
+            Title = "Looping Teleport",
+            Content = "Looping teleport is already stopped.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+end
+
+local RandomTeleportButton = Tab4:CreateButton({
+    Name = "Teleport to Random Player",
+    Callback = teleportToRandomPlayer
+})
+
+local LoopTeleportButton = Tab4:CreateButton({
+    Name = "Loop Teleport to Random Player",
+    Callback = toggleLoopTeleport
+})
+
+local StopLoopTeleportButton = Tab4:CreateButton({
+    Name = "Stop Loop Teleport",
+    Callback = stopLoopTeleport
+})
+
+local LoopTeleportSelectedButton = Tab4:CreateButton({
+    Name = "Loop Teleport to Selected Player",
+    Callback = toggleLoopTeleportToSelected
+})
+
+local StopLoopTeleportSelectedButton = Tab4:CreateButton({
+    Name = "Stop Loop Teleport to Selected Player",
+    Callback = stopLoopTeleportSelected
+})
+
+local LoopDelayInput = Tab4:CreateInput({
+    Name = "Loop Delay (seconds)",
+    PlaceholderText = "Enter delay...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local newDelay = tonumber(Text)
+        if newDelay and newDelay > 0 then
+            loopDelay = newDelay
+        else
+            loopDelay = 1
+            Rayfield:Notify({
+                Title = "Invalid Delay",
+                Content = "Invalid delay. Set to default (1 second).",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+local TeleportDistanceInput = Tab4:CreateInput({
+    Name = "Teleport Distance (studs)",
+    PlaceholderText = "Enter distance...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local newDistance = tonumber(Text)
+        if newDistance then
+            teleportDistance = newDistance
+        else
+            teleportDistance = 5
+            Rayfield:Notify({
+                Title = "Invalid Distance",
+                Content = "Invalid distance. Set to default (5 studs).",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
 })
 
 local TargetPlayerInput = Tab4:CreateInput({
@@ -217,68 +509,6 @@ local TargetPlayerInput = Tab4:CreateInput({
     RemoveTextAfterFocusLost = false,
     Callback = function(Text)
         targetPlayerName = Text
-    end,
-})
-
-local jumpPowerSlider = Tab:CreateSlider({
-    Name = "Jump Power",
-    Range = {0, 1000},
-    Increment = 10,
-    Suffix = " Power",
-    CurrentValue = 50,
-    Callback = function(Value)
-        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid and jumpPowerEnabled then
-                humanoid.JumpPower = Value
-            end
-        end
-    end
-})
-
-local jumpPowerEnabled = true
-local jumpPowerToggle = Tab:CreateToggle({
-    Name = "Enable Jump Power",
-    CurrentValue = true,
-    Callback = function(Value)
-        jumpPowerEnabled = Value
-        if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                if Value then
-                    humanoid.JumpPower = jumpPowerSlider.CurrentValue
-                else
-                    humanoid.JumpPower = 50
-                end
-            end
-        end
-    end,
-})
-
-local gravityEnabled = true
-local gravitySlider = Tab:CreateSlider({
-    Name = "Gravity",
-    Range = {-1000, 1000},
-    Increment = 50,
-    Suffix = " Agility",
-    CurrentValue = 196.2,
-    Callback = function(Value)
-        if gravityEnabled then
-            workspace.Gravity = Value
-        end
-    end
-})
-
-local gravityToggle = Tab:CreateToggle({
-    Name = "Enable Gravity Control",
-    CurrentValue = true,
-    Callback = function(Value)
-        gravityEnabled = Value
-        if Value then
-            workspace.Gravity = gravitySlider.CurrentValue
-        else
-            workspace.Gravity = 196.2
-        end
     end,
 })
 
