@@ -512,6 +512,25 @@ local TargetPlayerInput = Tab4:CreateInput({
     end,
 })
 
+local WebsiteButton = Tab3:CreateButton({
+    Name = "Our Website",
+    Callback = function()
+        if syn then
+            syn.write_clipboard("https://sites.google.com/view/1559hub/home")
+        elseif setclipboard then
+            setclipboard("https://sites.google.com/view/1559hub/home")
+        else
+            print("This exploit doesnt support clipboards")
+        end
+        Rayfield:Notify({
+            Title = "Copied!",
+            Content = "Website link copied to clipboard.",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+})
+
 for i, tab in pairs(Window.Tabs) do
     tab.ScrollingEnabled = true
 end
