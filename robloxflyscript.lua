@@ -11,6 +11,7 @@ local Window = Rayfield:CreateWindow({
 })
 local Tab = Window:CreateTab("Fly Settings", 4483362458)
 local Tab2 = Window:CreateTab("Speed Changer", 4483362458)
+local Tab4 = Window:CreateTab("TP", 4483362458)
 local Tab3 = Window:CreateTab("Discord", 4483362458)
 local flying = false
 local flySpeed = 50
@@ -89,37 +90,37 @@ local speedInput = Tab:CreateInput({
 local discordButton1 = Tab3:CreateButton({
     Name = "Get all kinds of scripts",
     Callback = function()
-		if syn then
-			syn.write_clipboard("https://discord.gg/MtFU8qmpqJ")
-		elseif setclipboard then
-        	setclipboard("https://discord.gg/MtFU8qmpqJ")
-		else
-			print("This exploit doesnt support clipboards")
-		end
-		Rayfield:Notify({
-			Title = "Copied!",
-			Content = "Discord invite link copied to clipboard.",
-			Duration = 3,
-			Image = 4483362458,
-		})
+        if syn then
+            syn.write_clipboard("https://discord.gg/MtFU8qmpqJ")
+        elseif setclipboard then
+            setclipboard("https://discord.gg/MtFU8qmpqJ")
+        else
+            print("This exploit doesnt support clipboards")
+        end
+        Rayfield:Notify({
+            Title = "Copied!",
+            Content = "Discord invite link copied to clipboard.",
+            Duration = 3,
+            Image = 4483362458,
+        })
     end
 })
 local discordButton2 = Tab3:CreateButton({
     Name = "Owner discord server!",
     Callback = function()
-		if syn then
-			syn.write_clipboard("https://discord.gg/tX9dd54a6e")
-		elseif setclipboard then
-        	setclipboard("https://discord.gg/tX9dd54a6e")
-		else
-			print("This exploit doesnt support clipboards")
-		end
-		Rayfield:Notify({
-			Title = "Copied!",
-			Content = "Discord invite link copied to clipboard.",
-			Duration = 3,
-			Image = 4483362458,
-		})
+        if syn then
+            syn.write_clipboard("https://discord.gg/tX9dd54a6e")
+        elseif setclipboard then
+            setclipboard("https://discord.gg/tX9dd54a6e")
+        else
+            print("This exploit doesnt support clipboards")
+        end
+        Rayfield:Notify({
+            Title = "Copied!",
+            Content = "Discord invite link copied to clipboard.",
+            Duration = 3,
+            Image = 4483362458,
+        })
     end
 })
 local walkSpeedEnabled = false
@@ -130,19 +131,18 @@ local walkSpeedSlider = Tab2:CreateSlider({
     Suffix = " studs/sec",
     CurrentValue = 16,
     Callback = function(Value)
-		if walkSpeedEnabled then
-        	if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-            	player.Character.Humanoid.WalkSpeed = Value
-        	end
-		end
+        if walkSpeedEnabled then
+            if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.WalkSpeed = Value
+            end
+        end
     end
 })
-
 local walkSpeedToggle = Tab2:CreateToggle({
     Name = "Enable Walk Speed Control",
     CurrentValue = false,
     Callback = function(Value)
-		walkSpeedEnabled = Value
+        walkSpeedEnabled = Value
         if player and player.Character and player.Character:FindFirstChild("Humanoid") then
             if Value then
                 player.Character.Humanoid.WalkSpeed = walkSpeedSlider.CurrentValue
@@ -152,15 +152,41 @@ local walkSpeedToggle = Tab2:CreateToggle({
         end
     end
 })
+local targetPlayerName = ""
+local TeleportButton = Tab4:CreateButton({
+    Name = "Teleport to Player",
+    Callback = function()
+        -- Find the target player
+        local targetPlayer = nil
+        for i, v in pairs(game.Players:GetPlayers()) do
+            if string.lower(v.Name) == string.lower(targetPlayerName) then
+                targetPlayer = v
+                break
+            end
+        end
+        -- Teleport to the target player
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local char = player.Character
+            local root = char:WaitForChild("HumanoidRootPart")
+            root.CFrame = targetHRP.CFrame + Vector3.new(0, 5, 0) -- Teleport above the player
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Player not found or no HumanoidRootPart",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end
+})
 
-player.CharacterAdded:Connect(function(character)
-    character:WaitForChild("Humanoid").Died:Connect(function()
-        stopFlying()
-    end)
-end)
-if player.Character then
-    player.Character:WaitForChild("Humanoid").Died:Connect(function()
-        stopFlying()
-    end)
-end
+local TargetPlayerInput = Tab4:CreateInput({
+    Name = "Enter player full user name (not display name)",
+    PlaceholderText = "Enter player name...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        targetPlayerName = Text
+    end,
+})
 Rayfield:LoadConfiguration()
